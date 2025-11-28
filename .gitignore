@@ -1,0 +1,5 @@
+permissions-*
+auth_credentials.json
+!permissions-emailreay_addUPN.json
+!permissions-emailreay.json
+!permissions-intune-exports.json
