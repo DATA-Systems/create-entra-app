@@ -12,7 +12,13 @@ param(
     [string]$ResourceId,
 
     [Parameter(Mandatory=$false)]
-    [string]$GetEntraResourceID
+    [string]$GetEntraResourceID,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$ListEntraResources,
+
+    [Parameter(Mandatory=$false)]
+    [string]$Filter
 )
 
 function Load-Permissions {
@@ -312,6 +318,44 @@ try {
     # Connect to entra as it is always needed
     if (!(Connect-ToMicrosoftEntra)) {
         throw "Failed to connect to Microsoft Entra"
+    }
+
+    if ($ListEntraResources) {
+        if ($Filter) {
+            $resources = Get-EntraServicePrincipal -All | Where-Object { $_.DisplayName -like "*$Filter*" } | Select-Object DisplayName, Id, AppId
+        } else {
+            $resources = Get-EntraServicePrincipal -All | Select-Object DisplayName, Id, AppId
+        }
+        
+        $selection = Read-Host "Enter the number of the resource you want to select (or 'q' to quit)"
+        if ($selection -match '^\d+$' -and [int]$selection -ge 1 -and [int]$selection -le $resources.Count) {
+            $selectedResource = $resources[[int]$selection - 1]
+            $ResourceId = $selectedResource.AppId
+            Write-Host "Selected: $($selectedResource.DisplayName)" -ForegroundColor Green
+            Write-Host "AppId: $($selectedResource.AppId)" -ForegroundColor Yellow
+            Write-Host "ObjectId: $($selectedResource.Id)" -ForegroundColor Yellow
+
+            # Ask if user wants to list all permissions assigned to the app
+            $listPermissions = Read-Host "Do you want to list all permissions assigned to this app? (y/n)"
+            if ($listPermissions -eq 'y' -or $listPermissions -eq 'yes') {
+                Write-Host "`nListing permissions for: $($selectedResource.DisplayName)" -ForegroundColor Cyan
+                $principal = Get-EntraServicePrincipal -Filter "AppId eq '$($selectedResource.AppId)'"
+                $principal | ForEach-Object {
+                    $_.AppRoles | ForEach-Object {
+                        Write-Host "  - $($_.Value): $($_.DisplayName) (ID: $($_.Id))" -ForegroundColor White
+                    }
+                }
+            }
+
+            exit 1
+        } elseif ($selection -eq 'q' -or $selection -eq 'quit') {
+            Write-Host "Exiting..." -ForegroundColor Yellow
+            exit 0
+        } else {
+            Write-Error "Invalid selection. Please enter a number between 1 and $($resources.Count)"
+            exit 0
+        }
+
     }
 
     # GetEntraResourceID
