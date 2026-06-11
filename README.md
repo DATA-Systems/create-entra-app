@@ -1,7 +1,8 @@
 # create-entra-app
 
-script to create M365 Entra Apps.
-needa an "permission.json" like the exmaples and created an "auth_credentials.json" with ID´s and the ClientSecret.
+script to create M365 Entra Apps.<br>
+Needs an "permission.json" like the exmaples and creates an "auth_credentials.json" with ID´s and the ClientSecret.
+Also has some features to get the IDs needed.
 
 ## Usage
 
@@ -10,11 +11,11 @@ needa an "permission.json" like the exmaples and created an "auth_credentials.js
 
 ### Get Permission ID´s (config supports name)
 
-Get only one permission ID
-`.\create-entra-app.ps1 -GetEntraPermissionID SMTP.SendAsApp -ResourceID 00000002-0000-0ff1-ce00-000000000000`
-
-Get multiple permission IDs
+Get permission ID(s), if multiple seperated by comma (",")<br>
 `.\create-entra-app.ps1 -GetEntraPermissionID "SMTP.SendAsApp,POP.AccessAsApp" -ResourceID 00000002-0000-0ff1-ce00-000000000000`
 
-Get both resource and permission id(s)
+Get resource ID<br>
+`.\create-entra-app.ps1 -GetEntraPermissionID SMTP.SendAsApp -ResourceID 00000002-0000-0ff1-ce00-000000000000`
+
+Get both resource and permission ID(s), if multiple seperated by comma (",")<br>
 `.\create-entra-app.ps1 -GetEntraPermissionID "SMTP.SendAsApp,POP.AccessAsApp" -GetEntraResourceID "Office 365 Exchange Online"`
