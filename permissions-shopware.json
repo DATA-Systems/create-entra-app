@@ -1,0 +1,23 @@
+{
+    "EntraApplication": {
+        "Name": "Shopware",
+        "SecretLifetimeMonths": 120,
+        "Permission": [
+            {
+                "ResourceAppId": "Office 365 Exchange Online",
+                "ResourceAccess": [
+                    {
+                        "Id": "SMTP.SendAsApp",
+                        "Type": "Role"
+                    }
+                ]
+            }
+        ]
+    },
+    "ExchangeOnlinePermissions": [
+        {
+            "UserPrincipalName": "user@example.com",
+            "AccessRights": "FullAccess"
+        }
+    ]
+}
