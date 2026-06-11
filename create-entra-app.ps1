@@ -415,11 +415,26 @@ try {
                 exit 1
             }
 
-            if (!($app -and $app.DisplayName -eq $permission.EntraAppName)) {
-                $app = Get-EntraServicePrincipal -Filter "DisplayName eq '$($permission.EntraAppName)'"
+            $name = $null
+            if ($Permissions.EntraApplication) {
+                $name = $Permissions.EntraApplication.Name
+            } elseif (!($app -and $app.DisplayName -eq $permission.EntraAppName)) {
+                $name = $permission.EntraAppName
+            } else {
+                Write-Error "No Entra application name found"
+                exit 1
             }
 
-            $exoServicePrincipal = New-ServicePrincipal -AppId $app.AppId -ObjectId $app.Id -DisplayName $permission.EntraAppName
+            $app = Get-EntraServicePrincipal -Filter "DisplayName eq '$($name)'"
+            if (!$app) {
+                Write-Error "Failed to find Entra application with name '$name'"
+                exit 1
+            }
+            $exoServicePrincipal = New-ServicePrincipal -AppId $app.AppId -ObjectId $app.Id -DisplayName $name
+            if (!$exoServicePrincipal) {
+                Write-Error "Failed to create service principal for Exchange Online permissions"
+                continue
+            }
             $mailbox = Add-MailboxPermission -AccessRights $permission.AccessRights -Identity $permission.UserPrincipalName -User $exoServicePrincipal.ObjectId
             if (!$mailbox) {
                 Write-Error "Failed to add mailbox permission for $($permission.UserPrincipalName)"
