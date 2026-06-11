@@ -1,7 +1,7 @@
 # create-entra-app
 
 script to create M365 Entra Apps.<br>
-Needs an "permission.json" like the exmaples and creates an "auth_credentials.json" with ID´s and the ClientSecret.
+Needs an "permission.json" like the exmaples and creates an "auth_credentials.json" with ID´s and the ClientSecret.<br>
 Also has some features to get the IDs needed.
 
 ## Usage
