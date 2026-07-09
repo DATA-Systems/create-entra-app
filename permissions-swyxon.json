@@ -1,6 +1,6 @@
 {
     "EntraApplication": {
-        "Name": "Swyxon_TEST",
+        "Name": "Swyxon",
         "SecretLifetimeMonths": 120,
         "Permission": [
             {

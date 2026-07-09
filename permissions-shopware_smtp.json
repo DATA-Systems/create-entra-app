@@ -1,6 +1,6 @@
 {
     "EntraApplication": {
-        "Name": "Shopware",
+        "Name": "Shopware_smtp",
         "SecretLifetimeMonths": 120,
         "Permission": [
             {
