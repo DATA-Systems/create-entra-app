@@ -321,21 +321,26 @@ function Save-Credentials {
 
 # Main execution
 try {
-    # install required modules if not present
-    if (-not (Get-Module -ListAvailable -Name Microsoft.Graph)) {
-        Write-Host "Installing Microsoft.Graph module..." -ForegroundColor Yellow
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force
-    }
-    if (-not (Get-Module -ListAvailable -Name ExchangeOnlineManagement)) {
-        Write-Host "Installing ExchangeOnlineManagement module..." -ForegroundColor Yellow
-        Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser -Force
+    $modules = @(
+        "Microsoft.Graph",
+        "Microsoft.Entra",
+        "ExchangeOnlineManagement"
+        )
+
+    # install and import required modules
+    foreach ($module in $modules) {
+        if (-not (Get-Module -ListAvailable -Name $module)) {
+            Write-Host "Installing module: $module" -ForegroundColor Yellow
+            Install-Module -Name $module -Force -AllowClobber
+        }
+        Import-Module $module -Force
     }
 
     # if $PermissionFilePath is default and file is not present write help message and exit
     if ($PermissionFilePath -eq ".\permissions.json" -and -not (Test-Path $PermissionFilePath)) {
         Write-Host "The default file ($PermissionFilePath) is not present. Please use: .\create-entra-app.ps1 -PermissionFilePath <path_to_permissions_file>" -ForegroundColor Yellow
         Write-Host "Other options are explained in the readme file." -ForegroundColor Yellow
-        exit 1
+        exit 0
     }
 
     # Connect to entra as it is always needed
