@@ -305,6 +305,7 @@ function Save-Credentials {
             ClientSecret = $Credentials.ClientSecret
             SecretExpires = $Credentials.ExpiryDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
             CreatedDate = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+            OpenIDConnectMetadataUrl = "https://login.microsoftonline.com/$($Credentials.TenantId)/v2.0/.well-known/openid-configuration"
         } | ConvertTo-Json 
         
         $credentialsJson | Out-File -FilePath $FilePath -Encoding UTF8
