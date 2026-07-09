@@ -25,44 +25,43 @@ function Load-Permissions {
     # Load required permissions from permissions.json
     if (Test-Path $PermissionFilePath) {
         Write-Host "Loading $PermissionFilePath..." -ForegroundColor Yellow
-        $Permissions = Get-Content $PermissionFilePath | ConvertFrom-Json
         
-        # Transform permission names to IDs if needed
-        if ($Permissions.EntraApplication -and $Permissions.EntraApplication.Permission) {
-            foreach ($permission in $Permissions.EntraApplication.Permission) {
-                # Check if ResourceAppId contains a name instead of an ID (GUID)
-                if ($permission.ResourceAppId -and $permission.ResourceAppId -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
-                    Write-Host "Converting resource name '$($permission.ResourceAppId)' to ID..." -ForegroundColor Yellow
-                    $resourceId = Get-EntraResourceID -ResourceName $permission.ResourceAppId
+        # ZWINGEND: Als Hashtabelle einlesen
+        $Permissions = Get-Content $PermissionFilePath | ConvertFrom-Json -AsHashtable -Depth 100
+        
+        # Syntax-Wechsel zu Hashtabellen-Abfragen ['...']
+        if ($Permissions['EntraApplication'] -and $Permissions['EntraApplication']['Permission']) {
+            foreach ($permission in $Permissions['EntraApplication']['Permission']) {
+                
+                if ($permission['ResourceAppId'] -and $permission['ResourceAppId'] -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
+                    Write-Host "Converting resource name '$($permission['ResourceAppId'])' to ID..." -ForegroundColor Yellow
+                    $resourceId = Get-EntraResourceID -ResourceName $permission['ResourceAppId']
                     if ($resourceId) {
-                        $permission.ResourceAppId = $resourceId
+                        $permission['ResourceAppId'] = $resourceId
                     } else {
-                        Write-Error "Failed to get resource ID for '$($permission.ResourceAppId)'"
+                        Write-Error "Failed to get resource ID"
                         exit 1
                     }
                 }
                 
-                # Check if ResourceAccess contains permission names instead of IDs
-                if ($permission.ResourceAccess) {
-                    foreach ($access in $permission.ResourceAccess) {
-                        if ($access.Id -and $access.Id -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
-                            Write-Host "Converting permission name '$($access.Id)' to ID..." -ForegroundColor Yellow
-                            $permissionId = Get-EntraPermissionID -PermissionName $access.Id -ResourceId $permission.ResourceAppId
+                if ($permission['ResourceAccess']) {
+                    foreach ($access in $permission['ResourceAccess']) {
+                        if ($access['Id'] -and $access['Id'] -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
+                            Write-Host "Converting permission name '$($access['Id'])' to ID..." -ForegroundColor Yellow
+                            $permissionId = Get-EntraPermissionID -PermissionName $access['Id'] -ResourceId $permission['ResourceAppId']
                             if ($permissionId) {
-                                $access.Id = [Guid]$permissionId
+                                $access['Id'] = [string]$permissionId
                             } else {
-                                Write-Error "Failed to get permission ID for '$($access.Id)'"
+                                Write-Error "Failed to get permission ID"
                                 exit 1
                             }
                         } else {
-                            # Ensure the ID is a GUID
-                            $access.Id = [Guid]$access.Id
+                            $access['Id'] = [string]$access['Id']
                         }
                     }
                 }
             }
         }
-        
         return $Permissions
     } else {
         Write-Error "$PermissionFilePath not found. This file is required to define the necessary permissions."
