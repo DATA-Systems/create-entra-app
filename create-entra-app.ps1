@@ -220,17 +220,22 @@ function New-EntraAppRegistration {
         Write-Host "✓ Service Principal created successfully" -ForegroundColor Green
         Write-Host "  Service Principal Object ID: $($graphServicePrincipal.Id)" -ForegroundColor Cyan
 
-        # Grand admin consent
-        # Get app role IDs from the required permissions
+        # Grant admin consent only for app roles.
+        # Delegated scopes belong in RequiredResourceAccess, but they are not assigned with app role assignment.
         $appRoles = @()
         foreach ($permission in $EntraPermissions) {
             $tmp = @()
             foreach ($role in $permission.ResourceAccess) {
-                $tmp += $role.Id
+                if ($role.Type -eq 'Role') {
+                    $tmp += $role.Id
+                }
             }
-            $appRoles += @{
-                ResourceAppId = $permission.ResourceAppId
-                ResourceAccess = $tmp
+
+            if ($tmp.Count -gt 0) {
+                $appRoles += @{
+                    ResourceAppId = $permission.ResourceAppId
+                    ResourceAccess = $tmp
+                }
             }
         }
 
