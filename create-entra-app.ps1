@@ -49,11 +49,14 @@ function Load-Permissions {
                             Write-Host "Converting permission name '$($access.Id)' to ID..." -ForegroundColor Yellow
                             $permissionId = Get-EntraPermissionID -PermissionName $access.Id -ResourceId $permission.ResourceAppId
                             if ($permissionId) {
-                                $access.Id = $permissionId
+                                $access.Id = [Guid]$permissionId
                             } else {
                                 Write-Error "Failed to get permission ID for '$($access.Id)'"
                                 exit 1
                             }
+                        } else {
+                            # Ensure the ID is a GUID
+                            $access.Id = [Guid]$access.Id
                         }
                     }
                 }
