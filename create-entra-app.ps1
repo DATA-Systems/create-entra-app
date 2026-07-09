@@ -331,6 +331,12 @@ try {
         Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser -Force
     }
 
+    # if $PermissionFilePath is default and file is not present write help message and exit
+    if ($PermissionFilePath -eq ".\permissions.json" -and -not (Test-Path $PermissionFilePath)) {
+        Write-Host "The default file ($PermissionFilePath) is not present. Please use: .\create-entra-app.ps1 -PermissionFilePath <path_to_permissions_file>" -ForegroundColor Yellow
+        Write-Host "Other options are explained in the readme file." -ForegroundColor Yellow
+        exit 1
+    }
 
     # Connect to entra as it is always needed
     if (!(Connect-ToMicrosoftEntra)) {
