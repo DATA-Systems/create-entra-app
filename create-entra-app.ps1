@@ -321,6 +321,17 @@ function Save-Credentials {
 
 # Main execution
 try {
+    # install required modules if not present
+    if (-not (Get-Module -ListAvailable -Name Microsoft.Graph)) {
+        Write-Host "Installing Microsoft.Graph module..." -ForegroundColor Yellow
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force
+    }
+    if (-not (Get-Module -ListAvailable -Name ExchangeOnlineManagement)) {
+        Write-Host "Installing ExchangeOnlineManagement module..." -ForegroundColor Yellow
+        Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser -Force
+    }
+
+
     # Connect to entra as it is always needed
     if (!(Connect-ToMicrosoftEntra)) {
         throw "Failed to connect to Microsoft Entra"
