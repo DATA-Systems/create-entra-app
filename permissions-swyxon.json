@@ -1,0 +1,57 @@
+{
+    "EntraApplication": {
+        "Name": "Swyxon_TEST",
+        "SecretLifetimeMonths": 120,
+        "Permission": [
+            {
+                "ResourceAppId": "00000003-0000-0000-c000-000000000000",
+                "ResourceAccess": [
+                    {
+                        "Id": "465a38f9-76ea-45b9-9f34-9e8b0d4b0b42",
+                        "Type": "Scope"
+                    },
+                    {
+                        "Id": "2b9c4092-424d-4249-948d-b43879977640",
+                        "Type": "Scope"
+                    },
+                    {
+                        "Id": "662d75ba-a364-42ad-adee-f5f880ea4878",
+                        "Type": "Scope"
+                    },
+                    {
+                        "Id": "1ec239c2-d7c9-4623-a91a-a9775856bb36",
+                        "Type": "Scope"
+                    },
+                    {
+                        "Id": "12466101-c9b8-439a-8589-dd09ee67e8e9",
+                        "Type": "Scope"
+                    },
+                    {
+                        "Id": "089fe4d0-434a-44c5-8827-41ba8a0b17f5",
+                        "Type": "Role"
+                    },
+                    {
+                        "Id": "6918b873-d17a-4dc1-b314-35f528134491",
+                        "Type": "Role"
+                    },
+                    {
+                        "Id": "a70e0c2d-e793-494c-94c4-118fa0a67f42",
+                        "Type": "Role"
+                    },
+                    {
+                        "Id": "83cded22-8297-4ff6-a7fa-e97e9545a259",
+                        "Type": "Role"
+                    },
+                    {
+                        "Id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+                        "Type": "Scope"
+                    },
+                    {
+                        "Id": "97235f07-e226-4f63-ace3-39588e11d3a1",
+                        "Type": "Role"
+                    }
+                ]
+            }
+        ]
+    }
+}
