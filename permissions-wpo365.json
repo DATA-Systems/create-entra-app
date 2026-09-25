@@ -1,0 +1,23 @@
+{
+    "EntraApplication": {
+        "Name": "wpo365",
+        "SecretLifetimeMonths": 120,
+        "Permission": [
+            {
+                "ResourceAppId": "Microsoft Graph",
+                "ResourceAccess": [
+                    {
+                        "Id": "Mail.Send",
+                        "Type": "Role"
+                    }
+                ]
+            }
+        ]
+    },
+    "ExchangeOnlinePermissions": [
+        {
+            "UserPrincipalName": "noreply@taiyogmbh.com",
+            "AccessRights": "FullAccess"
+        }
+    ]
+}

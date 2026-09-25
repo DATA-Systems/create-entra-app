@@ -6,3 +6,4 @@ auth_credentials.json
 !permissions-intune-exports.json
 !permissions-shopware_smtp.json
 !permissions-swyxon.json
+!permissions-wpo365.json
