@@ -18,7 +18,10 @@ param(
     [switch]$ListEntraResources,
 
     [Parameter(Mandatory=$false)]
-    [string]$Filter
+    [string]$Filter,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$BrowserLogin = $false
 )
 
 function Load-Permissions {
@@ -76,6 +79,7 @@ function Connect-ToMicrosoftEntra {
     try {
         try {
             if (Get-EntraContext -ErrorAction SilentlyContinue) {
+                Write-Host "Already connected to Microsoft Entra" -ForegroundColor Green
                 return $true
             }
         }
@@ -83,11 +87,16 @@ function Connect-ToMicrosoftEntra {
             # Ignore errors if no existing session
         }
 
-        Connect-Entra -NoWelcome -Scopes @(
+        $scopes = @(
             "Application.ReadWrite.All",
             "AppRoleAssignment.ReadWrite.All",
             "Directory.Read.All"
         )
+        if ($BrowserLogin) {
+            Connect-Entra -NoWelcome -UseDeviceCode -Scopes $scopes
+        } else {
+            Connect-Entra -NoWelcome -Scopes $scopes
+        }
         $context = Get-EntraContext
         Write-Host "✓ Successfully connected to Microsoft Entra" -ForegroundColor Green
         Write-Host "  Account: $($context.Account)" -ForegroundColor Cyan
@@ -105,8 +114,11 @@ function Connect-ToMicrosoftExchangeOnline {
     Write-Host "Connecting to Microsoft Exchange Online..." -ForegroundColor Yellow
 
     try {
-        # Connect using Microsoft.Exchange.Management.PowerShell
-        Connect-ExchangeOnline -ShowBanner:$false
+        if ($BrowserLogin) {
+            Connect-ExchangeOnline -ShowBanner:$false -Device
+        } else {
+            Connect-ExchangeOnline -ShowBanner:$false
+        }
         Write-Host "✓ Successfully connected to Microsoft Exchange Online" -ForegroundColor Green
         return $true
     }
@@ -324,18 +336,55 @@ function Save-Credentials {
 # Main execution
 try {
     $modules = @(
-        "Microsoft.Graph",
         "Microsoft.Entra",
         "ExchangeOnlineManagement"
         )
 
+    Write-Host "Starting required module installation..." -ForegroundColor Yellow
     # install and import required modules
     foreach ($module in $modules) {
         if (-not (Get-Module -ListAvailable -Name $module)) {
             Write-Host "Installing module: $module" -ForegroundColor Yellow
-            Install-Module -Name $module -Force -AllowClobber
+            Install-Module -Name $module -AllowClobber
         }
-        Import-Module $module -Force
+        Write-Host "Importing module: $module" -ForegroundColor Yellow
+        if (-not (Get-Module -Name $module)) {
+            Import-Module $module
+        }
+    }
+
+    # Connect to entra as it is always needed
+    if (!(Connect-ToMicrosoftEntra)) {
+        throw "Failed to connect to Microsoft Entra"
+    }
+
+    # GetEntraResourceID
+    if ($GetEntraResourceID) {
+        $ResourceId = Get-EntraResourceID -ResourceName $GetEntraResourceID
+        if ($ResourceId) {
+            if (!$GetEntraPermissionID) {
+                exit 0
+            }
+        } else {
+            Write-Error "Failed to retrieve Entra Resource ID for '$GetEntraResourceID'"
+            exit 1
+        }
+    }
+
+    # GetEntraPermissionID
+    if ($GetEntraPermissionID) {
+        if (!$ResourceId) {
+            Write-Error "Resource ID is required to get permission ID, give it with -ResourceId"
+            exit 1
+        }
+
+        $permissionId = Get-EntraPermissionID -PermissionName $GetEntraPermissionID -ResourceId $ResourceId
+        if ($permissionId) {
+            exit 0
+        } else {
+            Write-Error "Failed to retrieve Entra Permission ID for '$GetEntraPermissionID'"
+            exit 1
+        }
     }
 
     # if $PermissionFilePath is default and file is not present write help message and exit
@@ -343,11 +392,6 @@ try {
         Write-Host "The default file ($PermissionFilePath) is not present. Please use: .\create-entra-app.ps1 -PermissionFilePath <path_to_permissions_file>" -ForegroundColor Yellow
         Write-Host "Other options are explained in the readme file." -ForegroundColor Yellow
         exit 0
-    }
-
-    # Connect to entra as it is always needed
-    if (!(Connect-ToMicrosoftEntra)) {
-        throw "Failed to connect to Microsoft Entra"
     }
 
     if ($ListEntraResources) {
@@ -386,35 +430,6 @@ try {
             exit 0
         }
 
-    }
-
-    # GetEntraResourceID
-    if ($GetEntraResourceID) {
-        $ResourceId = Get-EntraResourceID -ResourceName $GetEntraResourceID
-        if ($ResourceId) {
-            if (!$GetEntraPermissionID) {
-                exit 0
-            }
-        } else {
-            Write-Error "Failed to retrieve Entra Resource ID for '$GetEntraResourceID'"
-            exit 1
-        }
-    }
-
-    # GetEntraPermissionID
-    if ($GetEntraPermissionID) {
-        if (!$ResourceId) {
-            Write-Error "Resource ID is required to get permission ID, give it with -ResourceId"
-            exit 1
-        }
-
-        $permissionId = Get-EntraPermissionID -PermissionName $GetEntraPermissionID -ResourceId $ResourceId
-        if ($permissionId) {
-            exit 0
-        } else {
-            Write-Error "Failed to retrieve Entra Permission ID for '$GetEntraPermissionID'"
-            exit 1
-        }
     }
 
     $Permissions = Load-Permissions
