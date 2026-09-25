@@ -455,15 +455,27 @@ try {
                 exit 1
             }
 
-            $app = Get-EntraServicePrincipal -Filter "DisplayName eq '$($name)'"
-            if (!$app) {
+            $apps = @(Get-EntraServicePrincipal -Filter "DisplayName eq '$($name)'")
+            if ($apps.Count -eq 0) {
                 Write-Error "Failed to find Entra application with name '$name'"
                 exit 1
             }
-            $exoServicePrincipal = New-ServicePrincipal -AppId $app.AppId -ObjectId $app.Id -DisplayName $name
+            if ($apps.Count -gt 1) {
+                Write-Error "Multiple Entra applications found with name '$name'; use a unique EntraAppName"
+                exit 1
+            }
+            $app = $apps[0]
+
+            $exoServicePrincipal = Get-ServicePrincipal -Organization $name
             if (!$exoServicePrincipal) {
-                Write-Error "Failed to create service principal for Exchange Online permissions"
-                continue
+                Write-Host "Creating service principal for Exchange Online permissions..." -ForegroundColor Yellow
+                $exoServicePrincipal = New-ServicePrincipal -AppId ([string]$app.AppId) -ObjectId ([string]$app.Id) -DisplayName $name
+                if (!$exoServicePrincipal) {
+                    Write-Error "Failed to create service principal for Exchange Online permissions"
+                    continue
+                }
+            } else {
+                Write-Host "Service principal '$name' for Exchange Online permissions already exists, using existing one..." -ForegroundColor Yellow
             }
             $mailbox = Add-MailboxPermission -AccessRights $permission.AccessRights -Identity $permission.UserPrincipalName -User $exoServicePrincipal.ObjectId
             if (!$mailbox) {
